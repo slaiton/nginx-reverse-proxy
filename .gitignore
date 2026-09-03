@@ -1,0 +1,16 @@
+# Logs (generados en runtime)
+logs/
+*.log
+
+# Configuraciones reales (copias de ejemplos con datos reales)
+conf.d/*.conf
+!conf.d/*-example.conf
+
+# Variables de entorno (nunca versionar secretos)
+.env
+.env.local
+.env.*.local
+
+# OS
+.DS_Store
+Thumbs.db

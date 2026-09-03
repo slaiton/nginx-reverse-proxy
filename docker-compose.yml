@@ -1,0 +1,67 @@
+# ============================================================================
+# Reverse Proxy Nginx - Proyecto Independiente
+# ============================================================================
+# Levanta un Nginx que escucha en 0.0.0.0:80 y 0.0.0.0:443
+# y hace proxy a los diferentes proyectos Docker en sus puertos internos
+#
+# Uso:
+#   docker compose -f docker-compose.yml up -d
+#
+# Nota: Los certificados SSL se montan como volúmenes desde /etc/letsencrypt
+#       en el host (generados con Certbot)
+# ============================================================================
+
+version: '3.8'
+
+name: nginx-reverse-proxy
+
+x-logging: &default-logging
+  driver: json-file
+  options:
+    max-size: "10m"
+    max-file: "5"
+
+services:
+  nginx:
+    image: nginx:1.27-alpine
+    container_name: nginx-reverse-proxy
+    ports:
+      - "0.0.0.0:80:80"
+      - "0.0.0.0:443:443"
+    volumes:
+      # Configuración de nginx
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./conf.d:/etc/nginx/conf.d:ro
+
+      # Certificados SSL (desde /etc/letsencrypt del host)
+      # Crear estos directorios en el host si no existen:
+      #   sudo mkdir -p /etc/nginx/certs
+      #   sudo cp /etc/letsencrypt/live/api.innvestock.com/* /etc/nginx/certs/
+      #   sudo cp /etc/letsencrypt/live/otro.dominio.com/* /etc/nginx/certs/
+      - /etc/letsencrypt/live:/etc/letsencrypt/live:ro
+
+      # Logs
+      - ./logs:/var/log/nginx
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:8888/health || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    restart: unless-stopped
+    logging: *default-logging
+
+    # DNS: resolver interno de Docker + host
+    # Necesario porque los contenedores de otros proyectos pueden tener IPs
+    # que cambian si se recrean
+    environment:
+      - RESOLV_CONF=/etc/resolv.conf
+    # Conectar a la red default de Docker para resolver nombres de otros contenedores
+    networks:
+      - default
+      - bridge
+
+# Usar la red bridge por defecto de Docker (permite conectar a contenedores de otros proyectos)
+networks:
+  bridge:
+    driver: bridge
