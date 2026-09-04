@@ -21,34 +21,31 @@ Nginx Reverse Proxy (contenedor)
 
 ## Setup rápido
 
-### 1. Copiar archivo de configuración
+### 1. Clonar el repositorio en el servidor
 
 ```bash
+cd /home/forge
+git clone <tu-repo> nginx-reverse-proxy
 cd nginx-reverse-proxy
-
-# Copiar ejemplo a configuración real
-cp conf.d/api-prueba-example.conf conf.d/api-prueba.conf
-
-# Editar con tu dominio real
-nano conf.d/api-prueba.conf
-# Reemplazar:
-#  - api.prueba.com → tu dominio
-#  - 127.0.0.1:8080 → puerto del proyecto logistica-api
 ```
 
-### 2. Generar certificados SSL (una sola vez)
+### 2. Instalar SSL automáticamente
+
+El repositorio incluye un script que:
+- ✓ Instala Certbot
+- ✓ Genera certificados SSL
+- ✓ Configura renovación automática
 
 ```bash
-# En el servidor, ANTES de levantar Docker
-sudo certbot certonly --standalone -d api.prueba.com -d www.api.prueba.com
+sudo chmod +x setup-ssl.sh
+sudo ./setup-ssl.sh api-innvestock.slaiton.com jstivenlaiton@gmail.com
 ```
 
-Los certificados quedan en `/etc/letsencrypt/live/api.prueba.com/` y se montan como volumen en Docker.
+**Nota:** Si ya tienes certificados, puedes saltarte este paso.
 
 ### 3. Levantar el reverse proxy
 
 ```bash
-cd nginx-reverse-proxy
 docker compose up -d
 
 # Verificar
@@ -63,7 +60,13 @@ docker compose logs -f
 curl http://127.0.0.1:8888/health
 
 # Acceso externo (HTTPS)
-curl -I https://api.prueba.com/api/v1/health
+curl -I https://api-innvestock.slaiton.com/api/v1/health
+```
+
+### Ver instrucciones detalladas de SSL
+
+```bash
+cat SETUP_SSL.md
 ```
 
 ## Agregar más proyectos
