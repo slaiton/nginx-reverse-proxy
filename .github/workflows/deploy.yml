@@ -50,14 +50,14 @@ jobs:
             -e "ssh -p $SSH_PORT" \
             ./ "$SSH_USER@$SSH_HOST:$DEPLOY_PATH/"
 
-      - name: Reload nginx
+      - name: Deploy and reload nginx
         env:
           SSH_HOST: ${{ secrets.PROD_SSH_HOST }}
           SSH_USER: ${{ secrets.PROD_SSH_USER }}
           SSH_PORT: ${{ secrets.PROD_SSH_PORT || 22 }}
         run: |
           ssh -p "$SSH_PORT" "$SSH_USER@$SSH_HOST" \
-            "cd '$DEPLOY_PATH' && docker compose up -d && docker compose exec -T nginx nginx -s reload"
+            "cd '$DEPLOY_PATH' && docker compose up -d && docker exec nginx-reverse-proxy nginx -s reload"
 
       - name: Cleanup SSH
         if: always()
