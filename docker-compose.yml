@@ -11,8 +11,6 @@
 #       en el host (generados con Certbot)
 # ============================================================================
 
-version: '3.8'
-
 name: nginx-reverse-proxy
 
 x-logging: &default-logging
