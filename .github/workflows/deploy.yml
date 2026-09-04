@@ -57,7 +57,7 @@ jobs:
           SSH_PORT: ${{ secrets.PROD_SSH_PORT || 22 }}
         run: |
           ssh -p "$SSH_PORT" "$SSH_USER@$SSH_HOST" \
-            "cd '$DEPLOY_PATH' && docker-compose up -d && docker-compose exec -T nginx nginx -s reload"
+            "cd '$DEPLOY_PATH' && docker compose up -d && docker compose exec -T nginx nginx -s reload"
 
       - name: Cleanup SSH
         if: always()
