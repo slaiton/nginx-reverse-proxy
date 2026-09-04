@@ -2,9 +2,10 @@
 logs/
 *.log
 
-# Configuraciones reales (copias de ejemplos con datos reales)
-conf.d/*.conf
-!conf.d/*-example.conf
+# Configuraciones específicas por usuario (ignorar archivos de ejemplo)
+conf.d.examples/
+conf.d/*-example.conf
+conf.d/*.conf.bak
 
 # Variables de entorno (nunca versionar secretos)
 .env
