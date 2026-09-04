@@ -50,15 +50,6 @@ jobs:
             -e "ssh -p $SSH_PORT" \
             ./ "$SSH_USER@$SSH_HOST:$DEPLOY_PATH/"
 
-      - name: Initialize SSL certificates
-        env:
-          SSH_HOST: ${{ secrets.PROD_SSH_HOST }}
-          SSH_USER: ${{ secrets.PROD_SSH_USER }}
-          SSH_PORT: ${{ secrets.PROD_SSH_PORT || 22 }}
-        run: |
-          ssh -p "$SSH_PORT" "$SSH_USER@$SSH_HOST" \
-            "cd '$DEPLOY_PATH' && sudo chmod +x init-certs.sh && sudo ./init-certs.sh"
-
       - name: Deploy and reload nginx
         env:
           SSH_HOST: ${{ secrets.PROD_SSH_HOST }}
@@ -66,17 +57,7 @@ jobs:
           SSH_PORT: ${{ secrets.PROD_SSH_PORT || 22 }}
         run: |
           ssh -p "$SSH_PORT" "$SSH_USER@$SSH_HOST" \
-            "cd '$DEPLOY_PATH' && docker compose down && docker compose up -d && sleep 2 && docker exec nginx-reverse-proxy nginx -s reload"
-
-      - name: Verify deployment
-        env:
-          SSH_HOST: ${{ secrets.PROD_SSH_HOST }}
-          SSH_USER: ${{ secrets.PROD_SSH_USER }}
-          SSH_PORT: ${{ secrets.PROD_SSH_PORT || 22 }}
-        run: |
-          ssh -p "$SSH_PORT" "$SSH_USER@$SSH_HOST" \
-            "docker compose -f '$DEPLOY_PATH/docker-compose.yml' ps && \
-            curl -s http://127.0.0.1:8888/health || echo 'Health check endpoint not yet ready'"
+            "cd '$DEPLOY_PATH' && docker compose down && docker compose up -d && docker exec nginx-reverse-proxy nginx -s reload"
 
       - name: Cleanup SSH
         if: always()
