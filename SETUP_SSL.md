@@ -1,32 +1,66 @@
 # Setup SSL con Certbot
 
-## Instalación Rápida
+## Flujo de despliegue (automático vía GitHub Actions)
 
-### 1. En el servidor, clonar el repositorio
+El workflow de GitHub Actions maneja automáticamente:
+
+1. **Inicializa certificados**: Si no existen certificados reales, crea temporales autofirmados
+2. **Despliega nginx**: Levanta el contenedor (funciona con HTTP o con HTTPS temporal)
+3. **Verifica estado**: Comprueba que nginx esté corriendo
+
+**Primera ejecución:**
+- Nginx usa certificados autofirmados (genera warnings en navegador)
+- El servicio está disponible pero sin SSL válido
+- Tu dominio debe estar apuntando al servidor
+
+**Generar certificados reales (manual):**
+
+Después del primer despliegue, genera certificados Let's Encrypt en el servidor:
+
+```bash
+cd /home/forge/nginx-reverse-proxy
+sudo chmod +x setup-ssl.sh
+sudo ./setup-ssl.sh api-innvestock.slaiton.com jstivenlaiton@gmail.com
+```
+
+Luego activa HTTPS:
+```bash
+./enable-ssl.sh
+```
+
+## Instalación Manual
+
+### 1. Clonar el repositorio
 ```bash
 cd /home/forge
 git clone <tu-repo> nginx-reverse-proxy
 cd nginx-reverse-proxy
 ```
 
-### 2. Ejecutar script de setup SSL
+### 2. Inicializar certificados (crea autofirmados si es necesario)
+```bash
+sudo chmod +x init-certs.sh
+sudo ./init-certs.sh
+```
+
+### 3. Levantar nginx
+```bash
+docker compose up -d
+```
+
+### 4. Generar certificados Let's Encrypt
 ```bash
 sudo chmod +x setup-ssl.sh
 sudo ./setup-ssl.sh api-innvestock.slaiton.com jstivenlaiton@gmail.com
 ```
 
-El script:
-- ✓ Instala certbot
-- ✓ Genera certificados SSL automáticamente
-- ✓ Configura renovación automática
-- ✓ Crea hooks para recargar nginx al renovar
-
-### 3. Levantar nginx con Docker
+### 5. Activar HTTPS
 ```bash
-docker compose up -d
+chmod +x enable-ssl.sh
+./enable-ssl.sh
 ```
 
-### 4. Verificar HTTPS
+### 6. Verificar
 ```bash
 curl -I https://api-innvestock.slaiton.com
 ```
