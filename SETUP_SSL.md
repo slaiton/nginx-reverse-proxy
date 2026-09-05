@@ -1,34 +1,69 @@
 # Setup SSL con Certbot
 
-## Flujo de despliegue (automático vía GitHub Actions)
+## Para múltiples dominios (RECOMENDADO)
 
-El workflow de GitHub Actions maneja automáticamente:
+Si tienes varios dominios configurados en `conf.d/`, usa este script para generar certificados para **todos automáticamente**:
 
-1. **Inicializa certificados**: Si no existen certificados reales, crea temporales autofirmados
-2. **Despliega nginx**: Levanta el contenedor (funciona con HTTP o con HTTPS temporal)
-3. **Verifica estado**: Comprueba que nginx esté corriendo
+```bash
+cd /home/forge/nginx-reverse-proxy
 
-**Primera ejecución:**
-- Nginx usa certificados autofirmados (genera warnings en navegador)
-- El servicio está disponible pero sin SSL válido
-- Tu dominio debe estar apuntando al servidor
+# Dar permisos de ejecución
+sudo chmod +x setup-ssl-multi.sh
 
-**Generar certificados reales (manual):**
+# Ejecutar (busca dominios en conf.d/*.conf y genera certificados)
+sudo ./setup-ssl-multi.sh
+```
 
-Después del primer despliegue, genera certificados Let's Encrypt en el servidor:
+El script automáticamente:
+- ✓ Detecta todos los dominios en las configuraciones
+- ✓ Genera certificados Let's Encrypt para cada uno
+- ✓ Configura renovación automática
+- ✓ Crea hooks para recargar nginx al renovar
+
+Luego recarga nginx:
+```bash
+docker exec nginx-reverse-proxy nginx -s reload
+```
+
+Verifica:
+```bash
+sudo certbot certificates
+curl -I https://tu-dominio.com
+```
+
+---
+
+## Para un solo dominio
+
+Si solo tienes un dominio:
 
 ```bash
 cd /home/forge/nginx-reverse-proxy
 sudo chmod +x setup-ssl.sh
-sudo ./setup-ssl.sh api-innvestock.slaiton.com jstivenlaiton@gmail.com
+sudo ./setup-ssl.sh tu-dominio.com tu-email@example.com
 ```
 
-Luego activa HTTPS:
+---
+
+## Flujo de despliegue (automático vía GitHub Actions)
+
+El workflow de GitHub Actions maneja automáticamente:
+
+1. **Inicializa certificados**: Si no existen, crea temporales autofirmados
+2. **Despliega nginx**: Levanta el contenedor
+3. **Verifica estado**: Comprueba que nginx esté corriendo
+
+**Después del primer despliegue**, genera certificados Let's Encrypt:
+
 ```bash
-./enable-ssl.sh
+cd /home/forge/nginx-reverse-proxy
+sudo ./setup-ssl-multi.sh
+docker exec nginx-reverse-proxy nginx -s reload
 ```
 
-## Instalación Manual
+---
+
+## Instalación Manual Paso a Paso
 
 ### 1. Clonar el repositorio
 ```bash
@@ -37,7 +72,7 @@ git clone <tu-repo> nginx-reverse-proxy
 cd nginx-reverse-proxy
 ```
 
-### 2. Inicializar certificados (crea autofirmados si es necesario)
+### 2. Inicializar certificados (autofirmados temporal)
 ```bash
 sudo chmod +x init-certs.sh
 sudo ./init-certs.sh
@@ -46,23 +81,25 @@ sudo ./init-certs.sh
 ### 3. Levantar nginx
 ```bash
 docker compose up -d
+docker compose logs -f nginx
 ```
 
 ### 4. Generar certificados Let's Encrypt
 ```bash
-sudo chmod +x setup-ssl.sh
-sudo ./setup-ssl.sh api-innvestock.slaiton.com jstivenlaiton@gmail.com
+sudo chmod +x setup-ssl-multi.sh
+sudo ./setup-ssl-multi.sh tu-email@example.com
 ```
 
-### 5. Activar HTTPS
+### 5. Recargar nginx con certificados reales
 ```bash
-chmod +x enable-ssl.sh
-./enable-ssl.sh
+docker exec nginx-reverse-proxy nginx -s reload
+docker compose restart nginx-reverse-proxy
 ```
 
 ### 6. Verificar
 ```bash
-curl -I https://api-innvestock.slaiton.com
+sudo certbot certificates
+curl -I https://tu-dominio.com
 ```
 
 ---
