@@ -32,11 +32,10 @@ services:
       - ./conf.d:/etc/nginx/conf.d:ro
 
       # Certificados SSL (desde /etc/letsencrypt del host)
-      # Crear estos directorios en el host si no existen:
-      #   sudo mkdir -p /etc/nginx/certs
-      #   sudo cp /etc/letsencrypt/live/api.innvestock.com/* /etc/nginx/certs/
-      #   sudo cp /etc/letsencrypt/live/otro.dominio.com/* /etc/nginx/certs/
       - /etc/letsencrypt/live:/etc/letsencrypt/live:ro
+
+      # Desafíos ACME para Certbot (validación de Let's Encrypt)
+      - /var/www/certbot:/var/www/certbot:rw
 
       # Logs
       - ./logs:/var/log/nginx
