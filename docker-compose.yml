@@ -49,6 +49,9 @@ services:
     restart: unless-stopped
     logging: *default-logging
 
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
     # DNS: resolver interno de Docker + host
     # Necesario porque los contenedores de otros proyectos pueden tener IPs
     # que cambian si se recrean
