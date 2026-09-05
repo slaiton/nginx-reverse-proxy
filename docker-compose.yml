@@ -33,6 +33,7 @@ services:
 
       # Certificados SSL (desde /etc/letsencrypt del host)
       - /etc/letsencrypt/live:/etc/letsencrypt/live:ro
+      - /etc/letsencrypt/archive:/etc/letsencrypt/archive:ro
 
       # Desafíos ACME para Certbot (validación de Let's Encrypt)
       - /var/www/certbot:/var/www/certbot:rw
